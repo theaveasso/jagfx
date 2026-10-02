@@ -1,0 +1,15 @@
+[
+  {
+    "label": "jaGFXSandbox (msvc-debug)",
+    "adapter": "CodeLLDB",
+    "request": "launch",
+    "build": {
+      "command": "cmd",
+      "args": ["/c", "build-msvc-debug.bat"],
+      "cwd": "$ZED_WORKTREE_ROOT"
+    },
+    "program": "$ZED_WORKTREE_ROOT/build/msvc-debug/bin/jagfx_cube.exe",
+    "cwd": "$ZED_WORKTREE_ROOT/build/msvc-debug/bin",
+    "args": []
+  }
+]

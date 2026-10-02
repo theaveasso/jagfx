@@ -1,0 +1,1 @@
+add_executable(jagfx_defferred_renderer main.cpp)

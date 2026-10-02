@@ -1,0 +1,40 @@
+BasedOnStyle: LLVM
+Standard: c++20
+
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+ColumnLimit: 0
+
+BreakBeforeBraces: Allman
+
+AlwaysBreakAfterReturnType: AllDefinitions
+
+SpaceBeforeParens: Never
+
+PointerAlignment: Right
+DerivePointerAlignment: false
+
+IndentCaseLabels: true
+
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+
+AlignConsecutiveMacros: Consecutive
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+  AlignFunctionDeclarations: false
+AlignConsecutiveAssignments: Consecutive
+AlignTrailingComments: true
+
+SortIncludes: Never
+ReflowComments: false
+IndentPPDirectives: None
+MaxEmptyLinesToKeep: 2
+
+TypenameMacros: ['GPU_PTR']
