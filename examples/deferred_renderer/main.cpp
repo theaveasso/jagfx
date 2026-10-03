@@ -7,7 +7,7 @@
 
 #include "deferred_shared.h"
 
-constexpr u32 OBJECT_COUNT = 10000;
+constexpr u32 OBJECT_COUNT = 100000;
 
 struct app
 {
@@ -15,6 +15,7 @@ struct app
     gpu_heap   Heap;
     frame_ring Ring;
     pipeline   SimulatePipeline;
+    pipeline   CullPipeline;
     pipeline   DrawPipeline;
 };
 
@@ -96,6 +97,11 @@ InitApp(app *App)
     {
         return 0;
     }
+    const compute_pipeline_desc CullDesc = {.ComputePath = BASE_DIR "cull.comp.glsl"};
+    if(!CreateComputeProgram(&CullDesc, &App->CullPipeline))
+    {
+        return 0;
+    }
     const graphics_pipeline_desc DrawDesc = {
         .VertexPath   = BASE_DIR "deferred.vert.glsl",
         .FragmentPath = BASE_DIR "deferred.frag.glsl",
@@ -135,12 +141,7 @@ RunApp(app *App)
         }
     }
 
-    gpu_cpu_range<draw_indexed_command> Command = PushGpu<draw_indexed_command>(&App->Heap, &App->Heap.Arena, 1);
-    *Command.Cpu                                = {
-        .IndexCount    = CUBE_INDEX_COUNT,
-        .InstanceCount = OBJECT_COUNT,
-        .FirstIndex    = u32(Indices.Gpu.Offset / sizeof(u16)),
-    };
+    gpu_cpu_range<u32> VisibleIds = PushGpu<u32>(&App->Heap, &App->Heap.Arena, OBJECT_COUNT);
 
     ja_input Input     = {};
     f64      StartTime = GetTimeSeconds();
@@ -167,18 +168,36 @@ RunApp(app *App)
             .ObjectsPtr = Objects.Gpu,
         };
 
+        gpu_cpu_range<draw_indexed_command> Command = PushGpu<draw_indexed_command>(&App->Heap, &Frame->Arena, 1);
+        *Command.Cpu                                = {
+            .IndexCount    = CUBE_INDEX_COUNT,
+            .InstanceCount = 0,
+            .FirstIndex    = u32(Indices.Gpu.Offset / sizeof(u16)),
+        };
+
+        gpu_cpu_range<cull_args> CullArgs = PushGpu<cull_args>(&App->Heap, &Frame->Arena, 1);
+        *CullArgs.Cpu                     = {
+            .Count         = OBJECT_COUNT,
+            .ObjectsPtr    = Objects.Gpu,
+            .VisibleIdsPtr = VisibleIds.Gpu,
+            .CommandPtr    = Command.Gpu,
+        };
+
         f32  Aspect     = (f32)Width / (f32)Height;
         mat4 View       = LookAt({0, 25, 40}, {0, 0, 0}, {0, 1, 0});
         mat4 Projection = Perspective(45.0 * 3.14159265 / 180.0, Aspect, 0.1, 100.0);
 
         gpu_cpu_range<draw_args> DrawArgs = PushGpu<draw_args>(&App->Heap, &Frame->Arena, 1);
         *DrawArgs.Cpu                     = {
-            .ViewProj    = Projection * View,
-            .VerticesPtr = Vertices.Gpu,
-            .ObjectsPtr  = Objects.Gpu,
+            .ViewProj      = Projection * View,
+            .VerticesPtr   = Vertices.Gpu,
+            .ObjectsPtr    = Objects.Gpu,
+            .VisibleIdsPtr = VisibleIds.Gpu,
         };
 
         Dispatch(&App->SimulatePipeline, SimArgs.Gpu, OBJECT_COUNT);
+        Barrier(barrier_flags::BARRIER_STORAGE);
+        Dispatch(&App->CullPipeline, CullArgs.Gpu, OBJECT_COUNT);
         Barrier(barrier_flags::BARRIER_STORAGE | barrier_flags::BARRIER_INDIRECT);
 
         BeginRendering(Width, Height, {0.0, 1.0, 0.0, 1.0});
@@ -193,6 +212,7 @@ static void
 QuitApp(app *App)
 {
     DestroyPipeline(&App->DrawPipeline);
+    DestroyPipeline(&App->CullPipeline);
     DestroyPipeline(&App->SimulatePipeline);
     DestroyGpuHeap(&App->Heap);
     JagfxShutdown();

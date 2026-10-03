@@ -68,6 +68,8 @@ void  StoreU32(uint Ptr, uint Value)  { HeapU32[Ptr / 4] = Value; }
 void  StoreF32(uint Ptr, float Value) { HeapU32[Ptr / 4] = floatBitsToUint(Value); }
 void  StoreVec4(uint Ptr, vec4 Value) { StoreF32(Ptr + 0, Value.x); StoreF32(Ptr + 4, Value.y); StoreF32(Ptr + 8, Value.z); StoreF32(Ptr + 12, Value.w); }
 void  StoreMat4(uint Ptr, mat4 Value) { StoreVec4(Ptr + 0, Value[0]); StoreVec4(Ptr + 16, Value[1]); StoreVec4(Ptr + 32, Value[2]); StoreVec4(Ptr + 48, Value[3]); }
+
+uint AtomicAddU32(uint Ptr, uint Value) { return atomicAdd(HeapU32[Ptr / 4], Value); }
 // clang-format on
 #endif
 #endif
