@@ -1,8 +1,9 @@
 # jagfx
 
-An OpenGL 4.6 port of the ideas in Sebastian Aaltonen's (sebbbi)
+An OpenGL 4.6 + `ARB_bindless_texture` port of the ideas in Sebastian Aaltonen's (sebbbi)
 [**NoGraphicsAPI**](https://github.com/sebbbi/NoGraphicsAPI): a graphics API built around
-GPU memory and pointers instead of bind slots.
+GPU memory and pointers instead of bind slots. Not core GL alone: bindless textures are an
+extension (see [Trade-offs](#trade-offs)).
 
 <!-- TODO: drop a GIF of the spinning cube here, e.g. ![cube](docs/cube.gif) -->
 
@@ -20,6 +21,12 @@ DrawIndexed(&App->Pipeline, Args.Gpu, Indices.Gpu, CUBE_INDEX_COUNT);
 
 No VAO layouts, no vertex/uniform buffer binds, no texture units. The draw passes **one `uint`**,
 and the shaders reach everything else through it.
+
+On GL that `uint` is an ordinary uniform update, so the original article's "it's nearly free"
+argument doesn't carry over. The reason to keep the shape anyway is GPU-driven drawing: with
+multi-draw indirect, uniforms can't change between draws, so every draw has to find its data
+through memory (planned: `gl_DrawID` → root table → struct). For plain CPU-driven draws, regular
+uniforms can be faster since they skip one memory read.
 
 ## The model
 
@@ -110,6 +117,13 @@ examples/cube         M1 + M2
 
 Code style is Handmade Hero-like: plain structs and free functions, arenas instead of the STL,
 no exceptions or RTTI.
+
+## How this was made
+
+This is a learning project. I built it with [Claude Code](https://claude.com/claude-code) as a
+tutor and reviewer: it explained concepts and reviewed my code. Parts of the code and most of
+the documentation (including this README) were written with it. Reviews and corrections are very
+welcome.
 
 ## Credits
 
