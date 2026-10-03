@@ -11,6 +11,7 @@ struct file
 
 [[nodiscard]] file ReadEntireFile(const char *Path, mem_arena *Arena);
 [[nodiscard]] b32 FileExists(const char *Path);
+size_t PathFolderLength(const char *Path);
 
 #ifdef JAUTILS_FILE_IMPLEMENTATION
 
@@ -66,5 +67,19 @@ FileExists(const char *Path)
         fclose(File);
     }
     return File != nullptr;
+}
+
+size_t
+PathFolderLength(const char *Path)
+{
+    const char *Slash = nullptr;
+    for(const char *C = Path; *C; ++C)
+    {
+        if(*C == '/' || *C == '\\')
+        {
+            Slash = C;
+        }
+    }
+    return Slash ? static_cast<size_t>(Slash - Path + 1) : 0;
 }
 #endif

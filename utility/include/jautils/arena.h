@@ -32,6 +32,7 @@ void DestroyArena(mem_arena *Arena);
 void InitArena(void *Base, size_t Size, mem_arena *Arena);
 
 void *PushSize(mem_arena *Arena, size_t Size, size_t Alignment = MAXIMUM_ALIGNMENT);
+const char *PushString(mem_arena *Arena, const char *String);
 void ResetArena(mem_arena *Arena);
 
 mem_temp BeginTempMemory(mem_arena *Arena);
@@ -54,6 +55,7 @@ mem_temp GetScratch(mem_arena **Conflicts = nullptr, int ConflictCount = 0);
 #else
 #error "jaUtils: unsupported platform"
 #endif
+#include <string.h>
 
 // Commit in chunks so PushSize does not call the OS for every small push.
 // A multiple of the 4 KB page size; 64 KB is also Windows' reservation granularity.
@@ -174,6 +176,18 @@ PushSize(mem_arena *Arena, size_t Size, size_t Alignment)
     u8 *Result  = Arena->Base + Arena->Used + Padding;
     Arena->Used = End;
     return Result;
+}
+
+const char *
+PushString(mem_arena *Arena, const char *String)
+{
+    size_t Size = strlen(String) + 1;
+    char  *Copy = static_cast<char *>(PushSize(Arena, Size, 1));
+    if(Copy)
+    {
+        memcpy(Copy, String, Size);
+    }
+    return Copy;
 }
 
 void

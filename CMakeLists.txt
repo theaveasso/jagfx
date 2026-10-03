@@ -11,7 +11,7 @@ find_package(OpenGL REQUIRED)
 add_subdirectory(vendor)
 add_subdirectory(utility)
 
-add_library(jaGFX STATIC include/jagfx/jagfx.h src/jagfx.cpp)
+add_library(jaGFX STATIC include/jagfx/jagfx.h src/jagfx.cpp src/shader_expand.h src/shader_expand.cpp)
 
 add_library(jaGFX::jaGFX ALIAS jaGFX)
 
