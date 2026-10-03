@@ -36,6 +36,12 @@ enum blend_mode : u32
     BLEND_ADDITIVE, // Src + Dst
 };
 
+enum barrier_flags : u32
+{
+    BARRIER_STORAGE  = 1 << 0,
+    BARRIER_INDIRECT = 1 << 1,
+};
+
 // Zero means off for every field, like a zeroed Vulkan create-info.
 struct graphics_pipeline_desc
 {
@@ -135,6 +141,7 @@ void DestroyTexture(texture *Texture);
 void BeginRendering(s32 Width, s32 Height, vec4 ClearColor);
 void EndRendering();
 
+void Barrier(u32 Flags);
 void DrawArraysInstancedUntyped(pipeline *Pipeline, u32 RootOffset, u32 VertexCount, u32 InstanceCount);
 void DrawElementsInstancedUntyped(pipeline *Pipeline, u32 RootOffset, u32 IndexOffset, u32 IndexCount, u32 InstanceCount);
 void DispatchGroupsUntyped(pipeline *Pipeline, u32 RootOffset, u32 GroupsX, u32 GroupsY = 1, u32 GroupsZ = 1);

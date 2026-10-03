@@ -426,6 +426,23 @@ ApplyPipelineState(const pipeline *Pipeline)
 }
 
 void
+Barrier(u32 Flags)
+{
+    JA_ASSERT(Flags != 0);
+    GLbitfield Bits = 0;
+    if(Flags & BARRIER_STORAGE)
+    {
+        Bits |= GL_SHADER_STORAGE_BARRIER_BIT;
+    }
+    if(Flags & BARRIER_INDIRECT)
+    {
+        Bits |= GL_COMMAND_BARRIER_BIT;
+    }
+    JA_ASSERT(Bits != 0);
+    glMemoryBarrier(Bits);
+}
+
+void
 DrawArraysInstancedUntyped(pipeline *Pipeline, u32 RootOffset, u32 VertexCount, u32 InstanceCount)
 {
     JA_ASSERT(GRendering && "draw outside BeginRendering/EndRendering");
@@ -455,7 +472,6 @@ DispatchGroupsUntyped(pipeline *Pipeline, u32 RootOffset, u32 GroupsX, u32 Group
     glUseProgram(Pipeline->Program);
     glProgramUniform1ui(Pipeline->Program, JAGFX_ROOT_LOCATION, RootOffset);
     glDispatchCompute(GroupsX, GroupsY, GroupsZ);
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
 static GLuint

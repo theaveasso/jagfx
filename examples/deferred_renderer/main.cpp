@@ -172,6 +172,7 @@ RunApp(app *App)
         };
 
         Dispatch(&App->SimulatePipeline, SimArgs.Gpu, OBJECT_COUNT);
+        Barrier(barrier_flags::BARRIER_STORAGE);
 
         BeginRendering(Width, Height, {0.0, 1.0, 0.0, 1.0});
         DrawIndexed(&App->DrawPipeline, DrawArgs.Gpu, Indices.Gpu, CUBE_INDEX_COUNT, OBJECT_COUNT);
