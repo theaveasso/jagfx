@@ -84,7 +84,9 @@ static constexpr u32 MAX_DISPATCH_GROUPS = 65535;
     X(PFNGLDELETESAMPLERSPROC, glDeleteSamplers)                                   \
     X(PFNGLSAMPLERPARAMETERIPROC, glSamplerParameteri)                             \
     X(PFNGLSAMPLERPARAMETERFPROC, glSamplerParameterf)                             \
-    X(PFNGLGETTEXTURESAMPLERHANDLEARBPROC, glGetTextureSamplerHandleARB)
+    X(PFNGLGETTEXTURESAMPLERHANDLEARBPROC, glGetTextureSamplerHandleARB)           \
+    X(PFNGLBINDBUFFERPROC, glBindBuffer)                                           \
+    X(PFNGLMULTIDRAWELEMENTSINDIRECTPROC, glMultiDrawElementsIndirect)
 
 constexpr u32 JAGFX_HEAP_BINDING  = 0;
 constexpr u32 JAGFX_ROOT_LOCATION = 0;
@@ -235,6 +237,7 @@ CreateGpuHeap(size_t Size, gpu_heap *Heap)
     JA_ASSERT(reinterpret_cast<umm>(Mapped) % FRAME_SLOT_ALIGNMENT == 0);
     InitArena(Mapped, Size, &Heap->Arena);
     Heap->Buffer = Buffer;
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, Heap->Buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, JAGFX_HEAP_BINDING, Heap->Buffer);
     glVertexArrayElementBuffer(GEmptyVao, Buffer);
     return 1;
@@ -450,6 +453,16 @@ DrawElementsInstancedUntyped(pipeline *Pipeline, u32 RootOffset, u32 IndexOffset
     glUseProgram(Pipeline->Program);
     glProgramUniform1ui(Pipeline->Program, JAGFX_ROOT_LOCATION, RootOffset);
     glDrawElementsInstanced(GL_TRIANGLES, IndexCount, GL_UNSIGNED_SHORT, (void *)(umm)IndexOffset, InstanceCount);
+}
+
+void
+DrawIndexedIndirectUntyped(pipeline *Pipeline, u32 RootOffset, u32 CommandOffset, u32 DrawCount)
+{
+    JA_ASSERT(GRendering && "draw outside BeginRendering/EndRendering");
+    ApplyPipelineState(Pipeline);
+    glUseProgram(Pipeline->Program);
+    glProgramUniform1ui(Pipeline->Program, JAGFX_ROOT_LOCATION, RootOffset);
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_SHORT, (void *)(umm)CommandOffset, DrawCount, 0);
 }
 
 void

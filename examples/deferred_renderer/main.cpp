@@ -135,6 +135,13 @@ RunApp(app *App)
         }
     }
 
+    gpu_cpu_range<draw_indexed_command> Command = PushGpu<draw_indexed_command>(&App->Heap, &App->Heap.Arena, 1);
+    *Command.Cpu                                = {
+        .IndexCount    = CUBE_INDEX_COUNT,
+        .InstanceCount = OBJECT_COUNT,
+        .FirstIndex    = u32(Indices.Gpu.Offset / sizeof(u16)),
+    };
+
     ja_input Input     = {};
     f64      StartTime = GetTimeSeconds();
     while(!WindowShouldClose(&App->Window))
@@ -172,10 +179,10 @@ RunApp(app *App)
         };
 
         Dispatch(&App->SimulatePipeline, SimArgs.Gpu, OBJECT_COUNT);
-        Barrier(barrier_flags::BARRIER_STORAGE);
+        Barrier(barrier_flags::BARRIER_STORAGE | barrier_flags::BARRIER_INDIRECT);
 
         BeginRendering(Width, Height, {0.0, 1.0, 0.0, 1.0});
-        DrawIndexed(&App->DrawPipeline, DrawArgs.Gpu, Indices.Gpu, CUBE_INDEX_COUNT, OBJECT_COUNT);
+        DrawIndexedIndirect(&App->DrawPipeline, DrawArgs.Gpu, Command.Gpu);
         EndRendering();
         EndFrame(&App->Ring);
         PresentWindow(&App->Window);

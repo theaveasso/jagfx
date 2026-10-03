@@ -144,6 +144,7 @@ void EndRendering();
 void Barrier(u32 Flags);
 void DrawArraysInstancedUntyped(pipeline *Pipeline, u32 RootOffset, u32 VertexCount, u32 InstanceCount);
 void DrawElementsInstancedUntyped(pipeline *Pipeline, u32 RootOffset, u32 IndexOffset, u32 IndexCount, u32 InstanceCount);
+void DrawIndexedIndirectUntyped(pipeline *Pipeline, u32 RootOffset, u32 CommandOffset, u32 DrawCount);
 void DispatchGroupsUntyped(pipeline *Pipeline, u32 RootOffset, u32 GroupsX, u32 GroupsY = 1, u32 GroupsZ = 1);
 
 template <typename T>
@@ -158,6 +159,13 @@ void
 DrawIndexed(pipeline *Pipeline, gpu_ptr<T> Root, gpu_ptr<u16> IndexOffset, u32 IndexCount, u32 InstanceCount = 1)
 {
     DrawElementsInstancedUntyped(Pipeline, Root.Offset, IndexOffset.Offset, IndexCount, InstanceCount);
+}
+
+template <typename T>
+void
+DrawIndexedIndirect(pipeline *Pipeline, gpu_ptr<T> Root, gpu_ptr<draw_indexed_command> Commands, u32 DrawCount = 1)
+{
+    DrawIndexedIndirectUntyped(Pipeline, Root.Offset, Commands.Offset, DrawCount);
 }
 
 template <typename T>

@@ -2,6 +2,7 @@
 #define JAGFX_SHARED_H
 
 #ifdef __cplusplus
+#include <stddef.h>
 #include <jautils/base.h>
 
 template <typename T>
@@ -9,20 +10,47 @@ struct gpu_ptr
 {
     u32 Offset;
 };
-static_assert(sizeof(gpu_ptr<u32>) == 4);
+
 #define GPU_PTR(T)  gpu_ptr<T>
 #define GPU_TEXTURE u64
 #else
-
 #extension GL_ARB_bindless_texture : require
 
 #define GPU_PTR(T)  uint
 #define GPU_TEXTURE uvec2
 #define u32         uint
 #define f32         float
+#define s32         int
 
 #define MAT4_SIZE 64
+#endif
 
+#define DRAW_INDEXED_COMMAND_SIZE           20
+#define DRAW_INDEXED_COMMAND_INDEX_COUNT    0
+#define DRAW_INDEXED_COMMAND_INSTANCE_COUNT 4
+#define DRAW_INDEXED_COMMAND_FIRST_INDEX    8
+#define DRAW_INDEXED_COMMAND_BASE_VERTEX    12
+#define DRAW_INDEXED_COMMAND_BASE_INSTANCE  16
+
+struct draw_indexed_command
+{
+    u32 IndexCount;
+    u32 InstanceCount;
+    u32 FirstIndex;
+    s32 BaseVertex;
+    u32 BaseInstance;
+};
+
+#ifdef __cplusplus
+static_assert(sizeof(gpu_ptr<u32>) == 4);
+
+static_assert(sizeof(draw_indexed_command) == DRAW_INDEXED_COMMAND_SIZE);
+static_assert(offsetof(draw_indexed_command, IndexCount) == DRAW_INDEXED_COMMAND_INDEX_COUNT);
+static_assert(offsetof(draw_indexed_command, InstanceCount) == DRAW_INDEXED_COMMAND_INSTANCE_COUNT);
+static_assert(offsetof(draw_indexed_command, FirstIndex) == DRAW_INDEXED_COMMAND_FIRST_INDEX);
+static_assert(offsetof(draw_indexed_command, BaseVertex) == DRAW_INDEXED_COMMAND_BASE_VERTEX);
+static_assert(offsetof(draw_indexed_command, BaseInstance) == DRAW_INDEXED_COMMAND_BASE_INSTANCE);
+#else
 // clang-format off
 layout(std430, binding = 0) buffer JagfxHeapU32  { uint HeapU32[]; };
 layout(std430, binding = 0) buffer JagfxHeapVec4 { vec4 HeapVec4[]; };
