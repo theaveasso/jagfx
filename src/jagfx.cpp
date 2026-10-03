@@ -12,6 +12,8 @@
 static_assert(sizeof(GLuint) == sizeof(u32));
 static_assert(sizeof(GLuint64) == sizeof(u64));
 
+static constexpr u32 MAX_DISPATCH_GROUPS = 65535;
+
 #define JAGFX_GL_FUNCTIONS(X)                                                      \
     X(PFNGLGETSTRINGPROC, glGetString)                                             \
     X(PFNGLGETSTRINGIPROC, glGetStringi)                                           \
@@ -444,11 +446,15 @@ DrawElementsInstancedUntyped(pipeline *Pipeline, u32 RootOffset, u32 IndexOffset
 }
 
 void
-DispatchUntyped(pipeline *Pipeline, u32 RootOffset, u32 ThreadCount, u32 GroupSize)
+DispatchGroupsUntyped(pipeline *Pipeline, u32 RootOffset, u32 GroupsX, u32 GroupsY, u32 GroupsZ)
 {
+    JA_ASSERT(!GRendering && "dispatch inside BeginRendering/EndRendering");
+    JA_ASSERT(GroupsX >= 1 && GroupsX <= MAX_DISPATCH_GROUPS);
+    JA_ASSERT(GroupsY >= 1 && GroupsY <= MAX_DISPATCH_GROUPS);
+    JA_ASSERT(GroupsZ >= 1 && GroupsZ <= MAX_DISPATCH_GROUPS);
     glUseProgram(Pipeline->Program);
     glProgramUniform1ui(Pipeline->Program, JAGFX_ROOT_LOCATION, RootOffset);
-    glDispatchCompute((ThreadCount + GroupSize - 1) / GroupSize, 1, 1);
+    glDispatchCompute(GroupsX, GroupsY, GroupsZ);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
@@ -726,12 +732,17 @@ CreateGraphicsPipeline(const graphics_pipeline_desc *Desc, pipeline *Pipeline)
 }
 
 b32
-LoadComputeProgram(const char *ComputePath, pipeline *Pipeline)
+CreateComputeProgram(const compute_pipeline_desc *Desc, pipeline *Pipeline)
 {
     *Pipeline = {};
 
-    shader_stage Stages[] = {{.Type = GL_COMPUTE_SHADER, .Path = ComputePath}};
-    return LoadProgram(Stages, &Pipeline->Program);
+    shader_stage Stages[] = {{.Type = GL_COMPUTE_SHADER, .Path = Desc->ComputePath}};
+    if(!LoadProgram(Stages, &Pipeline->Program))
+    {
+        return 0;
+    }
+    glGetProgramiv(Pipeline->Program, GL_COMPUTE_WORK_GROUP_SIZE, (GLint *)Pipeline->GroupSize);
+    return 1;
 }
 
 void

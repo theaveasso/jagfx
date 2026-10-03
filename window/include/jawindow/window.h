@@ -14,10 +14,11 @@ typedef ja_gl_proc (*ja_gl_get_proc)(const char *Name);
 
 [[nodiscard]] b32
 OpenWindow(int Width, int Height, const char *Title, ja_window *Window);
-void CloseWindow(ja_window *Window); // safe on a zeroed or failed-to-open window
+void CloseWindow(ja_window *Window);
 void PresentWindow(ja_window *Window);
-// In pixels, which can differ from the window size on high-DPI screens.
+
 void GetWindowFramebufferSize(ja_window *Window, int *Width, int *Height);
+f64 GetTimeSeconds();
 
 [[nodiscard]] ja_gl_get_proc GetWindowProcLoader();
 

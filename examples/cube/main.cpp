@@ -156,7 +156,6 @@ RunApp(app *App)
         }
 
         frame_slot *Frame = BeginFrame(&App->Ring);
-        (void)Frame;
 
         gpu_cpu_range<draw_args> Args = PushGpu<draw_args>(&App->Heap, &Frame->Arena, 1);
 

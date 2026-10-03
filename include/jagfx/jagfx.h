@@ -47,6 +47,11 @@ struct graphics_pipeline_desc
     blend_mode  Blend;
 };
 
+struct compute_pipeline_desc
+{
+    const char *ComputePath;
+};
+
 // Raster state is baked in at creation and applied by every draw, so nothing leaks between draws.
 struct pipeline
 {
@@ -55,6 +60,7 @@ struct pipeline
     b32        DepthWrite;
     cull_mode  Cull;
     blend_mode Blend;
+    u32        GroupSize[3];
 };
 
 struct texture
@@ -108,7 +114,7 @@ struct frame_ring
 void JagfxShutdown();
 
 [[nodiscard]] b32 CreateGraphicsPipeline(const graphics_pipeline_desc *Desc, pipeline *Pipeline);
-[[nodiscard]] b32 LoadComputeProgram(const char *ComputePath, pipeline *Pipeline);
+[[nodiscard]] b32 CreateComputeProgram(const compute_pipeline_desc *Desc, pipeline *Pipeline);
 void DestroyPipeline(pipeline *Pipeline);
 
 [[nodiscard]] b32 CreateGpuHeap(size_t Size, gpu_heap *Heap);
@@ -131,7 +137,7 @@ void EndRendering();
 
 void DrawArraysInstancedUntyped(pipeline *Pipeline, u32 RootOffset, u32 VertexCount, u32 InstanceCount);
 void DrawElementsInstancedUntyped(pipeline *Pipeline, u32 RootOffset, u32 IndexOffset, u32 IndexCount, u32 InstanceCount);
-void DispatchUntyped(pipeline *Pipeline, u32 RootOffset, u32 ThreadCount, u32 GroupSize);
+void DispatchGroupsUntyped(pipeline *Pipeline, u32 RootOffset, u32 GroupsX, u32 GroupsY = 1, u32 GroupsZ = 1);
 
 template <typename T>
 void
@@ -149,9 +155,17 @@ DrawIndexed(pipeline *Pipeline, gpu_ptr<T> Root, gpu_ptr<u16> IndexOffset, u32 I
 
 template <typename T>
 void
-Dispatch(pipeline *Pipeline, gpu_ptr<T> Root, u32 ThreadCount, u32 GroupSize = 64)
+Dispatch(pipeline *Pipeline, gpu_ptr<T> Root, u32 ThreadsX, u32 ThreadsY = 1, u32 ThreadsZ = 1)
 {
-    DispatchUntyped(Pipeline, Root.Offset, ThreadCount, GroupSize);
+    JA_ASSERT(Pipeline->GroupSize[0] != 0 && "not a compute pipeline");
+    if(ThreadsX == 0 || ThreadsY == 0 || ThreadsZ == 0)
+    {
+        return;
+    }
+    u32 GroupsX = (ThreadsX + Pipeline->GroupSize[0] - 1) / Pipeline->GroupSize[0];
+    u32 GroupsY = (ThreadsY + Pipeline->GroupSize[1] - 1) / Pipeline->GroupSize[1];
+    u32 GroupsZ = (ThreadsZ + Pipeline->GroupSize[2] - 1) / Pipeline->GroupSize[2];
+    DispatchGroupsUntyped(Pipeline, Root.Offset, GroupsX, GroupsY, GroupsZ);
 }
 
 constexpr size_t GPU_ALIGNMENT = 16;

@@ -102,6 +102,12 @@ GetWindowFramebufferSize(ja_window *Window, int *Width, int *Height)
     glfwGetFramebufferSize(Window->Handle, Width, Height);
 }
 
+f64
+GetTimeSeconds()
+{
+    return glfwGetTime();
+}
+
 ja_gl_get_proc
 GetWindowProcLoader()
 {
