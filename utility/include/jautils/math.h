@@ -9,6 +9,31 @@ struct alignas(8) vec2
     f32 X, Y;
 };
 
+inline vec2
+operator+(vec2 A, vec2 B)
+{
+    return {A.X + B.X, A.Y + B.Y};
+}
+
+inline vec2
+operator+=(vec2 &A, vec2 B)
+{
+    A = A + B;
+    return A;
+}
+
+inline vec2
+operator*(vec2 A, f32 S)
+{
+    return {A.X * S, A.Y * S};
+}
+
+inline f32
+Length(vec2 A)
+{
+    return sqrtf(A.X * A.X + A.Y * A.Y);
+}
+
 struct alignas(16) vec4
 {
     f32 X, Y, Z, W;
