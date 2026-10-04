@@ -22,8 +22,9 @@ DrawIndexed(&App->Pipeline, Args.Gpu, Indices.Gpu, CUBE_INDEX_COUNT);
 No VAO layouts, no vertex/uniform buffer binds, no texture units. The draw passes **one `uint`**,
 and the shaders reach everything else through it.
 
-On GL that `uint` is an ordinary uniform update, so the original article's "it's nearly free"
-argument doesn't carry over. The reason to keep the shape anyway is GPU-driven drawing: with
+The article's root pointer relies on Vulkan/Metal features, such as real 64-bit GPU pointers,
+that GL doesn't have, so on GL it's an ordinary uniform update. The reason to keep the shape
+anyway is GPU-driven drawing: with
 multi-draw indirect, uniforms can't change between draws, so every draw has to find its data
 through memory (planned: `gl_DrawID` → root table → struct). For plain CPU-driven draws, regular
 uniforms can be faster since they skip one memory read.
