@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.28)
 project(jaGFX VERSION 0.1.0 LANGUAGES CXX)
 
 option(jaGFX_BUILD_WINDOW "Build jaGFX window" ON)
-option(jaGFX_BUILD_EXAMPLES "Build jaGFX examples" ON)
+option(jaGFX_BUILD_EXAMPLES "Build jaGFX examples" OFF)
 option(jaGFX_BUILD_TESTS "Build jaGFX tests" OFF)
 
 find_package(OpenGL REQUIRED)
@@ -11,7 +11,14 @@ find_package(OpenGL REQUIRED)
 add_subdirectory(vendor)
 add_subdirectory(utility)
 
-add_library(jaGFX STATIC include/jagfx/jagfx.h src/jagfx.cpp src/shader_expand.h src/shader_expand.cpp)
+add_library(
+    jaGFX
+    STATIC
+    include/jagfx/jagfx.h
+    src/jagfx.cpp
+    src/shader_expand.h
+    src/shader_expand.cpp
+)
 
 add_library(jaGFX::jaGFX ALIAS jaGFX)
 
@@ -30,4 +37,8 @@ endif()
 
 if(jaGFX_BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/game/CMakeLists.txt)
+    add_subdirectory(game)
 endif()
