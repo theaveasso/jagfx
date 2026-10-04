@@ -1,3 +1,4 @@
+#include "jawindow/input.h"
 #include "jawindow/window.h"
 
 #define GLFW_INCLUDE_NONE
@@ -86,7 +87,7 @@ CloseWindow(ja_window *Window)
     {
         glfwDestroyWindow(Window->Handle);
     }
-    glfwTerminate(); // safe even if glfwInit never succeeded
+    glfwTerminate();
     *Window = {};
 }
 
@@ -94,6 +95,16 @@ void
 PresentWindow(ja_window *Window)
 {
     glfwSwapBuffers(Window->Handle);
+}
+
+static void
+BeginEvents(ja_window *Window, ja_input *Input)
+{
+    for(u32 Index = 0; Index < JA_KEY_COUNT; ++Index)
+    {
+        Input->Keys[Index].HalfTransitionCount = 0;
+    }
+    glfwSetWindowUserPointer(Window->Handle, Input);
 }
 
 void
@@ -121,13 +132,15 @@ WindowShouldClose(ja_window *Window)
 }
 
 void
+WaitEvents(ja_window *Window, ja_input *Input)
+{
+    BeginEvents(Window, Input);
+    glfwWaitEvents();
+}
+
+void
 PumpEvents(ja_window *Window, ja_input *Input)
 {
-    for(u32 Index = 0; Index < JA_KEY_COUNT; ++Index)
-    {
-        Input->Keys[Index].HalfTransitionCount = 0;
-    }
-
-    glfwSetWindowUserPointer(Window->Handle, Input);
+    BeginEvents(Window, Input);
     glfwPollEvents();
 }

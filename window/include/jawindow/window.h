@@ -23,4 +23,6 @@ f64 GetTimeSeconds();
 [[nodiscard]] ja_gl_get_proc GetWindowProcLoader();
 
 [[nodiscard]] b32 WindowShouldClose(ja_window *Window);
+
+void WaitEvents(ja_window *Window, ja_input *Input);
 void PumpEvents(ja_window *Window, ja_input *Input);
